@@ -11,8 +11,7 @@
   },
   "engine":{
 	  "node":"7.4.0"
-  }
-	
+  },
   "scripts": {
 	"start":"node server/server.js",
     "test": "mocha **/*.test.js",
