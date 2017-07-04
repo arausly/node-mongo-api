@@ -9,7 +9,7 @@
     "mongodb": "^2.2.5",
     "mongoose": "^4.10.8"
   },
-  "engine":{
+  "engines":{
 	  "node":"7.4.0"
   },
   "scripts": {
