@@ -15,11 +15,14 @@ const {
 const todos = [
 	{
 		_id: new ObjectID(),
-		text: "finish nodejs"
+		text: "start chat using nodejs",
+		completed:true,
+		completedAt:5637
 	}, 
 	{
 		_id: new ObjectID(),
 		text: "start react-native",
+		completed:false
 	}
 ];
 
@@ -87,6 +90,7 @@ describe('GET /todos', () => {
 		superTest(app)
 			.get('/todos')
 			.expect((res) => {
+			//why is this todos
 			expect(res.body.todos.length).toBe(2);
 		})
 			.expect(200)
@@ -124,4 +128,70 @@ describe('GET /todos/:id', () => {
 		.expect(404)
 		.end(done);
 	});
+})
+
+describe('DELETE /todos/:id',()=>{
+		it('should respond with deleted todo for valid id',(done)=>{
+			superTest(app)
+			.delete(`/todos/${todos[0]._id.toHexString()}`)
+			.expect(200)
+			.expect(res=>{
+				expect(res.body.todo.text).toBe(todos[0].text);
+			})
+			.end((err,res) =>{
+				if(err){
+				  return done(err);
+				}
+				
+				Todo.find().then(todoss =>{
+				  expect(todoss.length).toBe(1).toBeA('number');
+                  expect(todoss).toExclude(todos[0])
+					done();
+				}).catch(e => done(e))
+			})
+		});
+	  it('should not respond with a todo for valid id not found',(done)=>{
+		  superTest(app)
+		  .delete(`/todos/${new ObjectID().toHexString()}`)
+		  .expect(404)
+		  .end(done);
+	  })
+	  it('should not respond for invalid todo',(done)=>{
+		    superTest(app)
+			.delete(`/todos/123`)
+			.expect(404)
+			.end(done);
+	  })
+	})
+describe('PATCH /todos/:id',()=>{
+	it('should update todo with corresponding id',(done)=>{
+       let id = todos[0]._id;
+	   superTest(app)
+	   .patch(`/todos/${id}`)
+	   .send({completed:false})
+	   .expect((res)=>{
+		   expect(res.body.todo.completedAt).toBe(null);
+	   })
+	   .end((err,res)=>{
+		   if(err){
+			   return done(err);
+		   }
+		   Todo.findById(id).then((todo)=>{
+			   expect(todo.completed).toBe(false);
+			   done();
+		   }).catch(e => done(e));
+	   })
+	});
+	it('should not update todo for invalid id',(done)=>{
+		superTest(app)
+		.patch('/todos/123')
+		.expect(404)
+		.end(done)
+	});
+	it('should not update todo for unmatched todo',(done)=>{
+		superTest(app)
+		.patch(`/todos/${new ObjectID().toHexString()}`)
+		.expect(404)
+		.end(done);
+	})
 })
