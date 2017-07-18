@@ -5,18 +5,21 @@
   "main": "index.js",
   "dependencies": {
     "body-parser": "^1.17.2",
+    "crypto-js": "^3.1.9-1",
     "express": "^4.15.3",
+    "jsonwebtoken": "^7.4.1",
     "lodash": "^4.17.4",
     "mongodb": "^2.2.5",
-    "mongoose": "^4.10.8"
+    "mongoose": "^4.10.8",
+    "validator": "^8.0.0"
   },
   "engines": {
     "node": "7.4.0"
   },
   "scripts": {
     "start": "node server/server.js",
-    "test": "mocha **/*.test.js",
-    "auto-test": " nodemon --exec \" npm test \" "
+    "test": "export NODE_ENV=test || SET \"NODE_ENV=test\" && mocha **/*.test.js",
+    "auto-test": "nodemon --exec \" npm test \""
   },
   "keywords": [],
   "author": "",

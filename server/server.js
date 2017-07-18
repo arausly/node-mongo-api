@@ -7,17 +7,27 @@ const {
 } = require('mongodb');
 
 const {
-	mongoose
-} = require('./db/mongoose');
-const {
 	Todo
 } = require('./models/todo.js');
-const user = require('./models/user.js');
+const {
+	User
+} = require('./models/user.js');
 
+require('./config.js');
+
+//
+
+const {
+	mongoose
+} = require('./db/mongoose.js');
+
+const {
+	authenticate
+} = require('./middleware/authenticate');
 
 let app = express();
 
-let port = process.env.PORT || 3000;
+let port = process.env.PORT;
 
 // exposes function factories that populate the body of your req
 app.use(bodyParser.json());
@@ -89,7 +99,7 @@ app.patch('/todos/:id', (req, res, next) => {
 		res.status(200).send({
 			todo
 		})
-	}).catch(e=> {
+	}).catch(e => {
 		res.status(400).send();
 	});
 });
@@ -109,6 +119,30 @@ app.delete('/todos/:id', (req, res, next) => {
 		});
 	}).catch(e => res.status(400).send());
 })
+
+
+//user signs up, should have to login again, give user a token.
+
+app.post('/users', (req, res, next) => {
+	let body = _.pick(req.body, ['email', 'password']);
+	let user = new User(body);
+
+	user.save().then(() => {
+		return user.genAuthenticToken();
+	}).then(token => {
+		res.header('x-auth', token).status(200).send(user);
+	}).catch(err => res.status(400).send(err));
+});
+
+
+//401 authentication is required,
+//it's not good practice for your servers to respond with too much info when errors occur.
+//it could results in session hijacking, source forgery.
+
+app.get('/user/me', authenticate, (req, res, next) => {
+	res.status(200).send(req.user);
+});
+
 
 app.listen(port, () => {
 	console.log(`Server is Starting on port ${port}`);
