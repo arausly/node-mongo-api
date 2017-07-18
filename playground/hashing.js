@@ -1,20 +1,15 @@
 const {SHA256} =  require('crypto-js'); 
 const JWT = require('jsonwebtoken');
 const {ObjectID} = require('mongodb');
+const bcrypt = require('bcryptjs'); 
 
-let message= "some string";
-let hash = SHA256(message).toString();
+let password = "semper435";
 
+// bcrypt.genSalt gen salt before it hashes.
 
-
-let  data = {
-   id:5
-}
-
-let salt = new ObjectID().toString();
-
-let token = JWT.sign(data,salt);
-
-console.log(token);
-
+bcrypt.genSalt(10,(err,salt) =>{
+	bcrypt.hash(password,salt,(err,hash)=>{
+		console.log(hash);
+	})
+})
 

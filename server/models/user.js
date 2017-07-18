@@ -7,6 +7,7 @@ const jwt = require('jsonwebtoken');
 const _ = require('lodash');
 
 const validator = require('validator');
+const bcrypt = require('bcryptjs');
 
 
 let userSchema = new Schema({
@@ -77,7 +78,7 @@ userSchema.methods.genAuthenticToken = function () {
 		token
 	});
 
-	return user.save().then(() => {      
+	return user.save().then(() => {
 		return token;
 	});
 };
@@ -92,18 +93,34 @@ userSchema.statics.findByToken = function (token) {
 	let decodedJwtToken;
 
 	try {
-           decodedJwtToken = jwt.verify(token,'secret');
-	} catch(err){
-         return Promise.reject();
+		decodedJwtToken = jwt.verify(token, 'secret');
+	} catch (err) {
+		return Promise.reject();
 	}
 
-   return User.findOne({
-	   _id:decodedJwtToken._id,
-	   "tokens.token":token,
-	   "tokens.access":"auth"
-   });
+	return User.findOne({
+		_id: decodedJwtToken._id,
+		"tokens.token": token,
+		"tokens.access": "auth"
+	});
 }
 
+//the reason the `isModified` method is used is because of the possibility of hashing err, when a property other than the password is modified and then the document saved, it will result in hashing what as already been hashed. 
+//by the way the pre is a middleware that specifies what should be done before the queries occur, in this case the save.
+
+userSchema.pre('save', function (next) {
+	let user = this;
+	if (user.isModified('password')) {
+		bcrypt.genSalt(10, (err, salt) => {
+			bcrypt.hash(user.password, salt, (err, hash) => {
+                user.password = hash;
+				next();
+			});
+		});
+	} else {
+         next();
+	}
+})
 
 let User = mongoose.model('User', userSchema);
 
