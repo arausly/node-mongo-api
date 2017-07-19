@@ -16,13 +16,13 @@ const todos = [
 	{
 		_id: new ObjectID(),
 		text: "start chat using nodejs",
-		completed:true,
-		completedAt:5637
-	}, 
+		completed: true,
+		completedAt: 5637
+	},
 	{
 		_id: new ObjectID(),
 		text: "start react-native",
-		completed:false
+		completed: false
 	}
 ];
 
@@ -41,24 +41,24 @@ describe('POST /todos', () => {
 		superTest(app)
 			.post('/todos')
 			.send({
-			text
-		})
+				text
+			})
 			.expect(200)
 			.expect((res) => {
-			expect(res.body.text).toBe(text);
-		})
+				expect(res.body.text).toBe(text);
+			})
 			.end((err, res) => {
-			if (err) {
-				return done(err);
-			}
-			Todo.find({
-				text
-			}).then((todos) => {
-				expect(todos[0].text).toBe(text);
-				expect(todos.length).toBe(1).toBeA('number');
-				done();
-			}).catch((e) => done(e));
-		})
+				if (err) {
+					return done(err);
+				}
+				Todo.find({
+					text
+				}).then((todos) => {
+					expect(todos[0].text).toBe(text);
+					expect(todos.length).toBe(1).toBeA('number');
+					done();
+				}).catch((e) => done(e));
+			})
 	});
 
 	it('should not create todo for invalid data', (done) => {
@@ -66,21 +66,21 @@ describe('POST /todos', () => {
 		superTest(app)
 			.post('/todos')
 			.send({
-			text
-		})
+				text
+			})
 			.expect(400)
 			.expect((res) => {
-			expect(res.body.text).toNotExist();
-		})
+				expect(res.body.text).toNotExist();
+			})
 			.end((err, res) => {
-			if (err) {
-				return done(err);
-			}
-			Todo.find().then((todos) => {
-				expect(todos.length).toBe(2);
-				done();
-			}).catch(e => done(e));
-		})
+				if (err) {
+					return done(err);
+				}
+				Todo.find().then((todos) => {
+					expect(todos.length).toBe(2);
+					done();
+				}).catch(e => done(e));
+			})
 	});
 })
 
@@ -90,19 +90,19 @@ describe('GET /todos', () => {
 		superTest(app)
 			.get('/todos')
 			.expect((res) => {
-			//why is this todos
-			expect(res.body.todos.length).toBe(2);
-		})
+				//why is this todos
+				expect(res.body.todos.length).toBe(2);
+			})
 			.expect(200)
 			.end((err, res) => {
-			if (err) {
-				return done(err);
-			}
-			Todo.find().then((todos) => {
-				expect(todos.length).toBe(2);
-				done();
-			}).catch(e => done(e))
-		})
+				if (err) {
+					return done(err);
+				}
+				Todo.find().then((todos) => {
+					expect(todos.length).toBe(2);
+					done();
+				}).catch(e => done(e))
+			})
 	})
 })
 
@@ -111,87 +111,119 @@ describe('GET /todos/:id', () => {
 		superTest(app)
 			.get(`/todos/${todos[0]._id.toHexString()}`)
 			.expect(200)
-			.expect((res)=>{
-			 expect(res.body.todo.text).toBe(todos[0].text);
-		})
+			.expect((res) => {
+				expect(res.body.todo.text).toBe(todos[0].text);
+			})
 			.end(done);
 	});
-	it('should return a 404  if todos not found for invalid id',(done)=>{
+	it('should return a 404  if todos not found for invalid id', (done) => {
 		superTest(app)
-		.get('/todos/121')
-		.expect(404)
-		.end(done);
+			.get('/todos/121')
+			.expect(404)
+			.end(done);
 	});
-	it('should return 404 for todos not found with valid id',(done)=>{
+	it('should return 404 for todos not found with valid id', (done) => {
 		superTest(app)
-		.get(`/todos/${new ObjectID().toHexString()}`)
-		.expect(404)
-		.end(done);
+			.get(`/todos/${new ObjectID().toHexString()}`)
+			.expect(404)
+			.end(done);
 	});
 })
 
-describe('DELETE /todos/:id',()=>{
-		it('should respond with deleted todo for valid id',(done)=>{
-			superTest(app)
+describe('DELETE /todos/:id', () => {
+	it('should respond with deleted todo for valid id', (done) => {
+		superTest(app)
 			.delete(`/todos/${todos[0]._id.toHexString()}`)
 			.expect(200)
-			.expect(res=>{
+			.expect(res => {
 				expect(res.body.todo.text).toBe(todos[0].text);
 			})
-			.end((err,res) =>{
-				if(err){
-				  return done(err);
+			.end((err, res) => {
+				if (err) {
+					return done(err);
 				}
-				
-				Todo.find().then(todoss =>{
-				  expect(todoss.length).toBe(1).toBeA('number');
-                  expect(todoss).toExclude(todos[0])
+
+				Todo.find().then(todoss => {
+					expect(todoss.length).toBe(1).toBeA('number');
+					expect(todoss).toExclude(todos[0])
 					done();
 				}).catch(e => done(e))
 			})
-		});
-	  it('should not respond with a todo for valid id not found',(done)=>{
-		  superTest(app)
-		  .delete(`/todos/${new ObjectID().toHexString()}`)
-		  .expect(404)
-		  .end(done);
-	  })
-	  it('should not respond for invalid todo',(done)=>{
-		    superTest(app)
+	});
+	it('should not respond with a todo for valid id not found', (done) => {
+		superTest(app)
+			.delete(`/todos/${new ObjectID().toHexString()}`)
+			.expect(404)
+			.end(done);
+	})
+	it('should not respond for invalid todo', (done) => {
+		superTest(app)
 			.delete(`/todos/123`)
 			.expect(404)
 			.end(done);
-	  })
 	})
-describe('PATCH /todos/:id',()=>{
-	it('should update todo with corresponding id',(done)=>{
-       let id = todos[0]._id;
-	   superTest(app)
-	   .patch(`/todos/${id}`)
-	   .send({completed:false})
-	   .expect((res)=>{
-		   expect(res.body.todo.completedAt).toBe(null);
-	   })
-	   .end((err,res)=>{
-		   if(err){
-			   return done(err);
-		   }
-		   Todo.findById(id).then((todo)=>{
-			   expect(todo.completed).toBe(false);
-			   done();
-		   }).catch(e => done(e));
-	   })
-	});
-	it('should not update todo for invalid id',(done)=>{
+})
+describe('PATCH /todos/:id', () => {
+	it('should update todo with corresponding id', (done) => {
+		let id = todos[0]._id;
 		superTest(app)
-		.patch('/todos/123')
-		.expect(404)
-		.end(done)
+			.patch(`/todos/${id}`)
+			.send({
+				completed: false
+			})
+			.expect((res) => {
+				expect(res.body.todo.completedAt).toBe(null);
+			})
+			.end((err, res) => {
+				if (err) {
+					return done(err);
+				}
+				Todo.findById(id).then((todo) => {
+					expect(todo.completed).toBe(false);
+					done();
+				}).catch(e => done(e));
+			})
 	});
-	it('should not update todo for unmatched todo',(done)=>{
+	it('should not update todo for invalid id', (done) => {
 		superTest(app)
-		.patch(`/todos/${new ObjectID().toHexString()}`)
-		.expect(404)
-		.end(done);
+			.patch('/todos/123')
+			.expect(404)
+			.end(done)
+	});
+	it('should not update todo for unmatched todo', (done) => {
+		superTest(app)
+			.patch(`/todos/${new ObjectID().toHexString()}`)
+			.expect(404)
+			.end(done);
 	})
+})
+describe('POST /users/login', () => {
+	it('should login and return auth token for valid data', (done) => {
+
+		superTest(app)
+			.post('/user/login')
+			.send({
+				email:users[1].email,
+				password:users[1].password
+			})
+			.expect(200)
+			.expect(res => {
+				expect(res.body.email).toExist();
+				expect(res.body._id).toExist();
+				expect(res.header('x-auth')).toExist().toBeA('string');
+			})
+			.end((err, res) => {
+				if (err) {
+					return done(err);
+				}
+				User.findOne({
+					email: res.body.email
+				}).then((user) => {
+					expect(user.tokens.length).toBe(1);
+					expect(user.tokens.token).toExist();
+					expect(res.body.password).toNotBe(user.password);
+				})
+			});
+	});
+	
 })
