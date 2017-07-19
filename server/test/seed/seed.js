@@ -14,39 +14,50 @@ const {
 
 
 
+const userOne = new ObjectID();
+const userTwo = new ObjectID();
 
 const users = [
 	{
-		_id: new ObjectID(),
+		_id: userOne,
 		email: "arausid@yahoo.com",
 		password: "semper435",
 		tokens: [{
 			access: "auth",
 			token: jwt.sign({
-				_id: this._id,
+				_id: userOne,
 				access: this.access
-			},'secret').toString(),
+			}, process.env.SECRET).toString(),
 		}]
 	},
 	{
-		_id: new ObjectID(),
+		_id:userTwo,
 		email: "ovuo@yahoo.com",
 		password: "ovuo123",
+		tokens: [{
+			access: "auth",
+			token: jwt.sign({
+				_id: userTwo,
+				access: this.access
+			}, process.env.SECRET).toString(),
+		}]
 	}
 ]
-
 
 const todos = [
 	{
 		_id: new ObjectID(),
 		text: "start chat app using nodejs",
 		completed: true,
-		completedAt: 5637
+		completedAt: 5637,
+		_creator: userOne
+
 	},
 	{
 		_id: new ObjectID(),
 		text: "start react-native",
-		completed: false
+		completed: false,
+		_creator: userTwo
 	}
 ];
 
@@ -67,9 +78,9 @@ const populateUsers = (done) => {
 	User.remove({}).then(() => {
 		let daniel = new User(users[0]).save();
 		let mum = new User(users[1]).save();
-		
-	return Promise.all([daniel,mum]);
-	}).then(()=> done());
+
+		return Promise.all([daniel, mum]);
+	}).then(() => done());
 }
 
 

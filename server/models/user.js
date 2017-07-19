@@ -5,9 +5,9 @@ const {
 } = require('mongoose');
 const jwt = require('jsonwebtoken');
 const _ = require('lodash');
-
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
+
 
 
 let userSchema = new Schema({
@@ -70,7 +70,7 @@ userSchema.methods.genAuthenticToken = function () {
 	let token = jwt.sign({
 		_id: user._id.toHexString(),
 		access
-	}, 'secret').toString();
+	}, process.env.SECRET).toString();
 
 	// updating the tokens which is an array. hence updated using coventional array methods
 	user.tokens.push({
@@ -85,15 +85,17 @@ userSchema.methods.genAuthenticToken = function () {
 
 
 
-
-// the model method accesses the User model directly and can make queries 
+/*
+ the model method accesses the User model directly and can make queries 
+ the reason why the try catch block is used in this case is to handle errors that may occur in jwt.verify() process
+it goes bazinga, so we control*/
 
 userSchema.statics.findByToken = function (token) {
 	let User = this;
 	let decodedJwtToken;
 
 	try {
-		decodedJwtToken = jwt.verify(token, 'secret');
+		decodedJwtToken = jwt.verify(token, process.env.JWT_SECRET);
 	} catch (err) {
 		return Promise.reject();
 	}
