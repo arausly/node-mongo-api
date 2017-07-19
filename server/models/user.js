@@ -105,22 +105,51 @@ userSchema.statics.findByToken = function (token) {
 	});
 }
 
-//the reason the `isModified` method is used is because of the possibility of hashing err, when a property other than the password is modified and then the document saved, it will result in hashing what as already been hashed. 
-//by the way the pre is a middleware that specifies what should be done before the queries occur, in this case the save.
+/*
+the reason the `isModified` method is used is because of the possibility of hashing err, when a property other than the password is modified and then the document saved, it will result in hashing what as already been hashed. 
+by the way the pre is a middleware that specifies what should be done before the queries occur, in this case the save.
+midddleware pre is used to do something before the save is called*/
 
 userSchema.pre('save', function (next) {
 	let user = this;
 	if (user.isModified('password')) {
 		bcrypt.genSalt(10, (err, salt) => {
 			bcrypt.hash(user.password, salt, (err, hash) => {
-                user.password = hash;
+				user.password = hash;
 				next();
 			});
 		});
 	} else {
-         next();
+		next();
 	}
 })
+
+/*bcrypt.compare does not support the promise method but the callback method
+to utilize and maintain consistency the new  Promise method is utilized
+...............................................................................
+sorry from present docs july 19 2017 as of 2.4.0 if the callback is omitted it returns a promise
+hence i dont have to retun a new promise
+*/
+
+userSchema.statics.findByCredentials = function (email, password) {
+	let User = this;
+
+	return User.findOne({
+		email
+	}).then(user => {
+		if (!user) {
+			return Promise.reject();
+		}
+
+		return bcrypt.compare(password,user.password).then((res)=>{
+			if (res) {
+			  return Promise.resolve(user);
+			}
+			  return Promise.reject();
+		})
+	})
+}
+
 
 let User = mongoose.model('User', userSchema);
 

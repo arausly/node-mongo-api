@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const _ = require('lodash');
+const bcrypt = require('bcryptjs');
 
 const {
 	ObjectID
@@ -15,7 +16,6 @@ const {
 
 require('./config.js');
 
-//
 
 const {
 	mongoose
@@ -135,7 +135,7 @@ app.post('/users', (req, res, next) => {
 });
 
 
-//401 authentication is required,
+//401- authentication is required,
 //it's not good practice for your servers to respond with too much info when errors occur.
 //it could results in session hijacking, source forgery.
 
@@ -143,6 +143,16 @@ app.get('/user/me', authenticate, (req, res, next) => {
 	res.status(200).send(req.user);
 });
 
+app.post('/user/login', (req, res, next) => {
+	let body = _.pick(req.body, ['email', 'password']);
+	User.findByCredentials(body.email, body.password).then(user => {
+		return user.genAuthenticToken().then(token => {
+			res.header('x-auth', token).status(200).send(user);
+		})
+	}).catch(err => {
+		res.status(400).send()
+	})
+});
 
 app.listen(port, () => {
 	console.log(`Server is Starting on port ${port}`);
