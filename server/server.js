@@ -154,6 +154,14 @@ app.post('/user/login', (req, res, next) => {
 	})
 });
 
+//to logout 
+app.delete('/user/me/token', authenticate, (req, res) => {
+	req.user.removeToken(req.token).then((user) => {
+        res.status(200).send();
+	},(err)=>{
+		res.status(400).send()
+	})
+});
 
 app.listen(port, () => {
 	console.log(`Server is Starting on port ${port}`);

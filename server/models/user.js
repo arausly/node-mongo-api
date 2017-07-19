@@ -141,12 +141,27 @@ userSchema.statics.findByCredentials = function (email, password) {
 			return Promise.reject();
 		}
 
-		return bcrypt.compare(password,user.password).then((res)=>{
+		return bcrypt.compare(password, user.password).then((res) => {
 			if (res) {
-			  return Promise.resolve(user);
+				return Promise.resolve(user);
 			}
-			  return Promise.reject();
+			return Promise.reject();
 		})
+	})
+}
+
+
+// the $pull mongoose operator is used to update an array
+
+userSchema.methods.removeToken = function (token) {
+	let user = this;
+
+	return user.update({
+		$pull: {
+			tokens: {
+				token
+			}
+		}
 	})
 }
 

@@ -8,32 +8,23 @@ const {
 	Todo
 } = require('../models/todo');
 const {
+	User
+} = require('../models/user');
+const {
 	app
 } = require('../server');
 
+const {
+	populateTodos,
+	populateUsers,
+	users,
+	todos,
+} = require('./seed/seed.js');
 
-const todos = [
-	{
-		_id: new ObjectID(),
-		text: "start chat using nodejs",
-		completed: true,
-		completedAt: 5637
-	},
-	{
-		_id: new ObjectID(),
-		text: "start react-native",
-		completed: false
-	}
-];
 
-beforeEach((done) => {
-	Todo.remove({}).then(() => {
-		return Todo.insertMany(todos).then(() => {
-			done();
-		})
-	})
 
-});
+beforeEach(populateUsers);
+beforeEach(populateTodos);
 
 describe('POST /todos', () => {
 	it('should post todo data correctly to the db', (done) => {
@@ -203,14 +194,14 @@ describe('POST /users/login', () => {
 		superTest(app)
 			.post('/user/login')
 			.send({
-				email:users[1].email,
-				password:users[1].password
+				email: users[1].email,
+				password: users[1].password
 			})
 			.expect(200)
 			.expect(res => {
+				expect(res.headers['x-auth']).toExist();
 				expect(res.body.email).toExist();
 				expect(res.body._id).toExist();
-				expect(res.header('x-auth')).toExist().toBeA('string');
 			})
 			.end((err, res) => {
 				if (err) {
@@ -220,10 +211,35 @@ describe('POST /users/login', () => {
 					email: res.body.email
 				}).then((user) => {
 					expect(user.tokens.length).toBe(1);
-					expect(user.tokens.token).toExist();
+					expect(user.tokens[0].token).toExist();
 					expect(res.body.password).toNotBe(user.password);
-				})
+					done();
+				}).catch(err => done(err));
 			});
 	});
-	
+
+	it('should not login for invlaid data', (done) => {
+		superTest(app)
+			.post('/user/login')
+			.send({
+				email: users[1].email,
+				password: users[0].password
+			})
+			.expect(400)
+			.expect(res => {
+				expect(res.headers['x-auth']).toNotExist();
+			})
+			.end((err, res) => {
+				if (err){
+					return done(err);
+				}
+				User.findOne({
+					email:users[1].email,
+				}).then((user) => {
+					expect(user.tokens.length).toBe(0);
+					done();
+				}).catch(err => done(err));
+			});
+	})
+
 })
